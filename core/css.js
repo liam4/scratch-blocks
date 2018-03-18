@@ -1112,9 +1112,22 @@ Blockly.Css.CONTENT = [
 
   '.blocklyWidgetDiv .goog-menuseparator, ',
   '.blocklyDropDownDiv .goog-menuseparator {',
-    'border-top: 1px solid #ccc;',
     'margin: 4px 0;',
     'padding: 0;',
+  '}',
+
+  '.blocklyWidgetDiv .goog-menuseparator {',
+    'border-top: 1px solid #ccc;',
+  '}',
+
+  '.blocklyDropDownDiv .goog-menuseparator {',
+    // TODO(towerofnix): This is so that separators in block dropdown menus
+    // look the same as the border of the menu. However, this is a hack.
+    // The correct thing to do is somehow apply the "borderColour" argument of
+    // DropDownDiv.setColour to menu separators, but I don't know the best way
+    // to do that. Instead, we simply apply a transparent black color; this is
+    // close to, but not the same as, the border color.
+    'border-top: 1px solid rgba(0, 0, 0, 0.3);',
   '}',
 
   '.blocklyFlyoutCheckbox {',

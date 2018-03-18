@@ -185,6 +185,9 @@ Blockly.FieldDropdown.prototype.showEditor_ = function() {
       image.src = content['src'];
       image.alt = content['alt'] || '';
       content = image;
+    } else if (content === '-') {
+      menu.addChild(new goog.ui.MenuSeparator(), true);
+      continue;
     }
     var menuItem = new goog.ui.MenuItem(content);
     menuItem.setRightToLeft(this.sourceBlock_.RTL);
