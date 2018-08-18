@@ -1182,10 +1182,12 @@ Blockly.Block.prototype.toString = function(opt_maxLength, opt_emptyToken) {
  * Shortcut for appending a value input row.
  * @param {string} name Language-neutral identifier which may used to find this
  *     input again.  Should be unique to this block.
+ * @param {boolean} acceptsBlocks Whether or not the input allows blocks to be
+ *     dropped into it.
  * @return {!Blockly.Input} The input object created.
  */
-Blockly.Block.prototype.appendValueInput = function(name) {
-  return this.appendInput_(Blockly.INPUT_VALUE, name);
+Blockly.Block.prototype.appendValueInput = function(name, acceptsBlocks) {
+  return this.appendInput_(Blockly.INPUT_VALUE, name, acceptsBlocks);
 };
 
 /**
@@ -1195,7 +1197,7 @@ Blockly.Block.prototype.appendValueInput = function(name) {
  * @return {!Blockly.Input} The input object created.
  */
 Blockly.Block.prototype.appendStatementInput = function(name) {
-  return this.appendInput_(Blockly.NEXT_STATEMENT, name);
+  return this.appendInput_(Blockly.NEXT_STATEMENT, name, false);
 };
 
 /**
@@ -1205,7 +1207,7 @@ Blockly.Block.prototype.appendStatementInput = function(name) {
  * @return {!Blockly.Input} The input object created.
  */
 Blockly.Block.prototype.appendDummyInput = function(opt_name) {
-  return this.appendInput_(Blockly.DUMMY_INPUT, opt_name || '');
+  return this.appendInput_(Blockly.DUMMY_INPUT, opt_name || '', false);
 };
 
 /**
@@ -1416,6 +1418,7 @@ Blockly.Block.prototype.interpolate_ = function(message, args, lastDummyAlign) {
     } else {
       var field = null;
       var input = null;
+      var acceptsBlocks = 'acceptsBlocks' in element ? !!element['acceptsBlocks'] : true;
       do {
         var altRepeat = false;
         if (typeof element == 'string') {
@@ -1423,7 +1426,7 @@ Blockly.Block.prototype.interpolate_ = function(message, args, lastDummyAlign) {
         } else {
           switch (element['type']) {
             case 'input_value':
-              input = this.appendValueInput(element['name']);
+              input = this.appendValueInput(element['name'], acceptsBlocks);
               break;
             case 'input_statement':
               input = this.appendStatementInput(element['name']);
@@ -1473,15 +1476,17 @@ Blockly.Block.prototype.interpolate_ = function(message, args, lastDummyAlign) {
  *     Blockly.DUMMY_INPUT.
  * @param {string} name Language-neutral identifier which may used to find this
  *     input again.  Should be unique to this block.
+ * @param {boolean} acceptsBlocks Whether or not the input allows blocks to be
+ *     dropped into it.
  * @return {!Blockly.Input} The input object created.
  * @protected
  */
-Blockly.Block.prototype.appendInput_ = function(type, name) {
+Blockly.Block.prototype.appendInput_ = function(type, name, acceptsBlocks) {
   var connection = null;
   if (type == Blockly.INPUT_VALUE || type == Blockly.NEXT_STATEMENT) {
     connection = this.makeConnection_(type);
   }
-  var input = new Blockly.Input(type, name, this, connection);
+  var input = new Blockly.Input(type, name, this, connection, acceptsBlocks);
   // Append input to list.
   this.inputList.push(input);
   return input;

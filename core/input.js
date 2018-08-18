@@ -38,9 +38,11 @@ goog.require('goog.asserts');
  *     input again.
  * @param {!Blockly.Block} block The block containing this input.
  * @param {Blockly.Connection} connection Optional connection for this input.
+ * @param {boolean} acceptsBlocks Whether or not the input allows blocks to be
+ *     dropped into it.
  * @constructor
  */
-Blockly.Input = function(type, name, block, connection) {
+Blockly.Input = function(type, name, block, connection, acceptsBlocks) {
   if (type != Blockly.DUMMY_INPUT && !name) {
     throw 'Value inputs and statement inputs must have non-empty name.';
   }
@@ -64,6 +66,9 @@ Blockly.Input = function(type, name, block, connection) {
    * @package
    */
   this.outlinePath = null;
+
+  /** @type {boolean} */
+  this.acceptsBlocks = !!acceptsBlocks;
 };
 
 /**

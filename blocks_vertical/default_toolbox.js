@@ -511,6 +511,9 @@ Blockly.Blocks.defaultToolbox = '<xml id="toolbox-categories" style="display: no
       '</value>' +
     '</block>' +
     '<block type="operator_mathop" id="operator_mathop">' +
+      '<value name="OPERATOR">' +
+        '<shadow type="operator_mathopmenu"></shadow>' +
+      '</value>' +
       '<value name="NUM">' +
         '<shadow type="math_number">' +
           '<field name="NUM"></field>' +

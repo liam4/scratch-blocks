@@ -439,8 +439,29 @@ Blockly.Blocks['operator_mathop'] = {
       "message0": Blockly.Msg.OPERATORS_MATHOP,
       "args0": [
         {
-          "type": "field_dropdown",
+          "type": "input_value",
           "name": "OPERATOR",
+          "acceptsBlocks": false
+        },
+        {
+          "type": "input_value",
+          "name": "NUM"
+        }
+      ],
+      "category": Blockly.Categories.operators,
+      "extensions": ["colours_operators", "output_number"]
+    });
+  }
+};
+
+Blockly.Blocks['operator_mathopmenu'] = {
+  init: function() {
+    this.jsonInit({
+      "message0": "%1",
+      "args0": [
+        {
+          "type": "field_dropdown",
+          "name": "MATHOPMENU",
           "options": [
             [Blockly.Msg.OPERATORS_MATHOP_ABS, 'abs'],
             [Blockly.Msg.OPERATORS_MATHOP_FLOOR, 'floor'],
@@ -457,14 +478,9 @@ Blockly.Blocks['operator_mathop'] = {
             [Blockly.Msg.OPERATORS_MATHOP_EEXP, 'e ^'],
             [Blockly.Msg.OPERATORS_MATHOP_10EXP, '10 ^']
           ]
-        },
-        {
-          "type": "input_value",
-          "name": "NUM"
         }
       ],
-      "category": Blockly.Categories.operators,
-      "extensions": ["colours_operators", "output_number"]
+      "extensions": ["colours_operators", "output_string"]
     });
   }
 };

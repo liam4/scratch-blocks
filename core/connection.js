@@ -67,6 +67,7 @@ Blockly.Connection.REASON_DIFFERENT_WORKSPACES = 5;
 Blockly.Connection.REASON_SHADOW_PARENT = 6;
 // Fixes #1127, but may be the wrong solution.
 Blockly.Connection.REASON_CUSTOM_PROCEDURE = 7;
+Blockly.Connection.REASON_DOES_NOT_ACCEPT_BLOCKS = 8;
 
 /**
  * Connection this connection connects to.  Null if not connected.
@@ -302,7 +303,12 @@ Blockly.Connection.prototype.canConnectWithReason_ = function(target) {
     var blockA = target.getSourceBlock();
     var superiorConn = target;
   }
-  if (blockA && blockA == blockB) {
+  var targetInput = target.sourceBlock_.inputList.find(function(input) {
+    return input.connection === target;
+  });
+  if (targetInput && !targetInput.acceptsBlocks) {
+    return Blockly.Connection.REASON_DOES_NOT_ACCEPT_BLOCKS;
+  } else if (blockA && blockA == blockB) {
     return Blockly.Connection.REASON_SELF_CONNECTION;
   } else if (target.type != Blockly.OPPOSITE_TYPE[this.type]) {
     return Blockly.Connection.REASON_WRONG_TYPE;
