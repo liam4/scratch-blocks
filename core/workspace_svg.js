@@ -1312,19 +1312,20 @@ Blockly.WorkspaceSvg.prototype.isDraggable = function() {
  * @private
  */
 Blockly.WorkspaceSvg.prototype.onMouseWheel_ = function(e) {
-  // TODO: Remove gesture cancellation and compensate for coordinate skew during
-  // zoom.
-  if (this.currentGesture_) {
-    this.currentGesture_.cancel();
-  }
-
   // Multiplier variable, so that non-pixel-deltaModes are supported.
   // See LLK/scratch-blocks#1190.
   var multiplier = e.deltaMode === 0x1 ? Blockly.LINE_SCROLL_MULTIPLIER : 1;
 
   if (e.ctrlKey) {
+    // TODO: Remove gesture cancellation and compensate for coordinate skew
+    // during zoom.
+    if (this.currentGesture_) {
+      this.currentGesture_.cancel();
+    }
+
     // The vertical scroll distance that corresponds to a click of a zoom button.
     var PIXELS_PER_ZOOM_STEP = 50;
+
     var delta = -e.deltaY / PIXELS_PER_ZOOM_STEP * multiplier;
     var position = Blockly.utils.mouseToSvg(e, this.getParentSvg(),
         this.getInverseScreenCTM());
@@ -1347,10 +1348,43 @@ Blockly.WorkspaceSvg.prototype.onMouseWheel_ = function(e) {
       y = this.scrollY; // Don't scroll vertically
     }
 
+    // Record old scroll position...
+    var oldScrollX = this.scrollX;
+    var oldScrollY = this.scrollY;
+
+    // ...Actually apply the scroll...
     this.startDragMetrics = this.getMetrics();
     this.scroll(x, y);
+
+    // ...Then offset the current gesture (if there is one) by the distance
+    // scrolled.
+    if (this.currentGesture_) {
+      this.currentGesture_.addScrollOffset({
+        x: oldScrollX - this.scrollX,
+        y: oldScrollY - this.scrollY
+      });
+    }
   }
+
   e.preventDefault();
+};
+
+/**
+ * Keep track of the given block's dimensions. Should be called once when a
+ * block is started being dragged. Shouldn't be called for blocks dragged from
+ * the flyout, since their bounding rectangle won't be relevant in the main
+ * workspace.
+ */
+Blockly.WorkspaceSvg.prototype.recordDraggingBlockDimensions = function(block) {
+  this.originalDraggedDimensions_ = goog.object.clone(block.getBoundingRectangle());
+};
+
+/**
+ * Stop accounting for the dragged block's original dimensions. Should be
+ * called once when a block is finished being dragged.
+ */
+Blockly.WorkspaceSvg.prototype.eraseDraggingBlockDimensions = function() {
+  this.originalDraggedDimensions_ = null;
 };
 
 /**
@@ -1364,17 +1398,44 @@ Blockly.WorkspaceSvg.prototype.getBlocksBoundingBox = function() {
   var topBlocks = this.getTopBlocks(false);
   var topComments = this.getTopComments(false);
   var topElements = topBlocks.concat(topComments);
-  // There are no blocks, return empty rectangle.
-  if (!topElements.length) {
-    return {x: 0, y: 0, width: 0, height: 0};
+
+  // If we are currently dragging a block, take into account its position
+  // before the drag started.
+  var dimensions = this.originalDraggedDimensions_;
+  if (dimensions && false) {
+    topElements.push({
+      getBoundingRectangle: function() {
+        return dimensions;
+      }
+    });
   }
 
-  // Initialize boundary using the first block.
-  var boundary = topElements[0].getBoundingRectangle();
+  // To calculate the boundary around all elements, loop through each top-level
+  // element. Use a continue filter to skip elements which should not be
+  // considered in the boundary.
 
-  // Start at 1 since the 0th block was used for initialization
-  for (var i = 1; i < topElements.length; i++) {
+  var boundary = null;
+
+  for (var i = 0; i < topElements.length; i++) {
+    // If the block is being dragged, skip it.
+    if (topElements[i].getDragging && topElements[i].getDragging()) {
+      continue;
+    }
+
+    // If the block is an insertion marker, skip it.
+    if (topElements[i].isInsertionMarker()) {
+      continue;
+    }
+
     var blockBoundary = topElements[i].getBoundingRectangle();
+    console.log('Cont:', topElements[i].type, JSON.stringify(blockBoundary.bottomRight));
+
+    // If this is the first block, just use its boundary as-is.
+    if (boundary === null) {
+      boundary = blockBoundary;
+      continue;
+    }
+
     if (blockBoundary.topLeft.x < boundary.topLeft.x) {
       boundary.topLeft.x = blockBoundary.topLeft.x;
     }
@@ -1388,6 +1449,13 @@ Blockly.WorkspaceSvg.prototype.getBlocksBoundingBox = function() {
       boundary.bottomRight.y = blockBoundary.bottomRight.y;
     }
   }
+
+  // There were no blocks used to calculate the boundary, so return an empty
+  // rectangle.
+  if (!boundary) {
+    return {x: 0, y: 0, width: 0, height: 0};
+  }
+
   return {
     x: boundary.topLeft.x,
     y: boundary.topLeft.y,

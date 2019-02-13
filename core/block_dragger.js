@@ -251,6 +251,7 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
     this.draggingBlock_.scheduleSnapAndBump();
   }
   this.workspace_.setResizesEnabled(true);
+  this.workspace_.eraseDraggingBlockDimensions();
 
   var toolbox = this.workspace_.getToolbox();
   if (toolbox) {

@@ -74,6 +74,14 @@ Blockly.Gesture = function(e, creatorWorkspace) {
   this.currentDragDeltaXY_ = null;
 
   /**
+   * Offset applied to drag delta; how far the workspace has been scrolled
+   * during this drag, in pixel units.
+   * @type {goog.math.Coordinate}
+   * @private
+   */
+  this.scrollOffsetXY_ = null;
+
+  /**
    * The bubble that the gesture started on, or null if it did not start on a
    * bubble.
    * @type {Blockly.Bubble}
@@ -283,6 +291,7 @@ Blockly.Gesture.prototype.dispose = function() {
  */
 Blockly.Gesture.prototype.updateFromEvent_ = function(e) {
   var currentXY = new goog.math.Coordinate(e.clientX, e.clientY);
+  currentXY = goog.math.Coordinate.sum(currentXY, this.scrollOffsetXY_);
   var changed = this.updateDragDelta_(currentXY);
   // Exceeded the drag radius for the first time.
   if (changed) {
@@ -290,6 +299,15 @@ Blockly.Gesture.prototype.updateFromEvent_ = function(e) {
     Blockly.longStop_();
   }
   this.mostRecentEvent_ = e;
+};
+
+/**
+ * Change offset to apply to this gesture's scroll position caused by scrolling
+ * the workspace.
+ * @param {goog.math.Coordinate} xy Offset to add to existing offset.
+ */
+Blockly.Gesture.prototype.addScrollOffset = function(xy) {
+  this.scrollOffsetXY_ = goog.math.Coordinate.sum(this.scrollOffsetXY_, xy);
 };
 
 /**
@@ -452,6 +470,9 @@ Blockly.Gesture.prototype.updateIsDragging_ = function() {
  * @private
  */
 Blockly.Gesture.prototype.startDraggingBlock_ = function() {
+  if (!this.flyout_) {
+    this.startWorkspace_.recordDraggingBlockDimensions(this.targetBlock_);
+  }
   if (this.shouldDuplicateOnDrag_) {
     this.duplicateOnDrag_();
   }
@@ -516,6 +537,7 @@ Blockly.Gesture.prototype.doStart = function(e) {
 
   this.mouseDownXY_ = new goog.math.Coordinate(e.clientX, e.clientY);
   this.currentDragDeltaXY_ = new goog.math.Coordinate(0, 0);
+  this.scrollOffsetXY_ = new goog.math.Coordinate(0, 0);
 
   this.bindMouseEvents(e);
 };

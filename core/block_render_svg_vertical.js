@@ -613,12 +613,18 @@ Blockly.BlockSvg.prototype.highlightShapeForInput = function(conn, add) {
 Blockly.BlockSvg.prototype.getHeightWidth = function() {
   var height = this.height;
   var width = this.width;
+  if (this.isInsertionMarker()) {
+    height = 0;
+    width = 0;
+  }
   // Recursively add size of subsequent blocks.
   var nextBlock = this.getNextBlock();
   if (nextBlock) {
     var nextHeightWidth = nextBlock.getHeightWidth();
     height += nextHeightWidth.height;
-    height -= Blockly.BlockSvg.NOTCH_HEIGHT; // Exclude height of connected notch.
+    if (!nextBlock.isInsertionMarker()) {
+      height -= Blockly.BlockSvg.NOTCH_HEIGHT; // Exclude height of connected notch.
+    }
     width = Math.max(width, nextHeightWidth.width);
   }
   return {height: height, width: width};

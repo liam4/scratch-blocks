@@ -80,6 +80,12 @@ Blockly.BlockSvg = function(workspace, prototypeName, opt_id) {
    */
   this.useDragSurface_ = Blockly.utils.is3dSupported() && !!workspace.blockDragSurface_;
 
+  /**
+   * Whether or not the block (or a parent) is being dragged.
+   * @type {boolean}
+   */
+  this.dragging_ = false;
+
   Blockly.Tooltip.bindMouseEvents(this.svgPath_);
   Blockly.BlockSvg.superClass_.constructor.call(this,
       workspace, prototypeName, opt_id);
@@ -729,6 +735,7 @@ Blockly.BlockSvg.prototype.moveConnections_ = function(dx, dy) {
  * @package
  */
 Blockly.BlockSvg.prototype.setDragging = function(adding) {
+  this.dragging_ = adding;
   if (adding) {
     var group = this.getSvgRoot();
     group.translate_ = '';
@@ -746,6 +753,14 @@ Blockly.BlockSvg.prototype.setDragging = function(adding) {
   for (var i = 0; i < this.childBlocks_.length; i++) {
     this.childBlocks_[i].setDragging(adding);
   }
+};
+
+/**
+ * Return whether or not the block is being dragged.
+ * @returns {boolean} Whether or not it's being dragged.
+ */
+Blockly.BlockSvg.prototype.getDragging = function() {
+  return this.dragging_;
 };
 
 /**
